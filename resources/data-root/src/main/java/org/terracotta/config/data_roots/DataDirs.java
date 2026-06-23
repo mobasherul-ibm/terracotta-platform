@@ -17,6 +17,7 @@
 package org.terracotta.config.data_roots;
 
 import com.tc.classloader.CommonComponent;
+import org.terracotta.common.struct.Tuple2;
 
 import java.io.Closeable;
 import java.nio.file.Path;
@@ -53,4 +54,13 @@ public interface DataDirs extends Closeable {
    */
   Set<String> getDataDirectoryNames();
 
+  void setEncryptKey(String name, String key);
+
+  Optional<Tuple2<String, String>> getEncryptKey(String name);
+
+  <T extends DataDirsEncryptionListener> T registerListener(String name, T listener);
+
+  void removeListener(String name);
+
+  void removeOldKey(String name, String key);
 }

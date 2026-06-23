@@ -16,8 +16,10 @@
  */
 package org.terracotta.config.data_roots;
 
+import org.terracotta.diagnostic.server.api.DiagnosticServicesHolder;
 import org.terracotta.dynamic_config.api.model.NodeContext;
 import org.terracotta.dynamic_config.api.model.Setting;
+import org.terracotta.dynamic_config.api.service.DataDirsEncryption;
 import org.terracotta.dynamic_config.api.service.IParameterSubstitutor;
 import org.terracotta.dynamic_config.api.service.TopologyService;
 import org.terracotta.dynamic_config.api.server.ConfigChangeHandlerManager;
@@ -55,9 +57,14 @@ public class DataRootsDynamicConfigExtension implements DynamicConfigExtension {
     dataDirs.values().stream()
         .map(path -> parameterSubstitutor.substitute(pathResolver.resolve(path)))
         .forEach(path -> new MoveOperation(path).move());
+
     DataDirsConfigImpl dataDirectoriesConfig = new DataDirsConfigImpl(parameterSubstitutor, pathResolver, nodeMetadataDir, dataDirs);
     configChangeHandlerManager.set(Setting.DATA_DIRS, new DataDirConfigChangeHandler(dataDirectoriesConfig, parameterSubstitutor, pathResolver));
     configChangeHandlerManager.set(Setting.NODE_METADATA_DIR, new MetaDataDirConfigChangeHandler(parameterSubstitutor, pathResolver));
     registrar.registerExtendedConfiguration(dataDirectoriesConfig);
+
+    //findService(platformConfig)
+    DataDirsEncryption dataDirsEncryption = new DataDirsEncryptionImpl(dataDirectoriesConfig, platformConfiguration);
+    DiagnosticServicesHolder.willRegister(DataDirsEncryption.class, dataDirsEncryption);
   }
 }

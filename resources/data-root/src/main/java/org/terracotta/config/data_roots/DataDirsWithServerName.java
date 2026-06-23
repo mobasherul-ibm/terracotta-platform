@@ -16,21 +16,31 @@
  */
 package org.terracotta.config.data_roots;
 
+import org.terracotta.common.struct.Tuple2;
+import org.terracotta.dynamic_config.api.service.DataDirsEncryption;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class DataDirsWithServerName implements DataDirs {
 
   private final DataDirsConfigImpl wrapped;
   private final String serverName;
   private final Map<String, FileLocking> fileLockingMap = new HashMap<>();
+  private final Map<String, Tuple2<String, String>> encryptionKeyMap = new ConcurrentHashMap<>();
+  private final Map<String, DataDirsEncryptionListener> listenerMap = new ConcurrentHashMap<>();
+  private final Map<String, Boolean> encryptionInProgress = new HashMap<>();
+
 
   DataDirsWithServerName(DataDirsConfigImpl wrapped, String serverName) {
     this.wrapped = wrapped;
@@ -81,6 +91,59 @@ final class DataDirsWithServerName implements DataDirs {
   @Override
   public Set<String> getDataDirectoryNames() {
     return wrapped.getRootIdentifiers();
+  }
+
+  @Override
+  public synchronized void setEncryptKey(String name, String key) {
+      if(!encryptionInProgress.getOrDefault(name, false)) {
+        encryptionKeyMap.compute(name, (k, v) -> {
+          if (v == null) {
+            return Tuple2.tuple2(null, key);
+          }
+          return Tuple2.tuple2(v.getT2(), key);
+        });
+        // Add this information to file
+
+        if (listenerMap.containsKey(name)) {
+          listenerMap.get(name).keyChanged(key);
+          encryptionInProgress.put(name, true);
+        }
+      }
+  }
+
+  @Override
+  public Optional<Tuple2<String, String>> getEncryptKey(String name) {
+    return Optional.ofNullable(encryptionKeyMap.get(name));
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends DataDirsEncryptionListener> T registerListener(String name, T listener) {
+    return (T) listenerMap.computeIfAbsent(name, k -> listener);
+  }
+
+  @Override
+  public void removeListener(String name) {
+     listenerMap.remove(name);
+  }
+
+  @Override
+  public synchronized void removeOldKey(String name, String key) {
+     // ask every listener if anyone is using it anymore
+//     boolean canRemove = true;
+//     for(DataDirsEncryptionListener listener : listenerMap.get(name)) {
+//       if(listener.isUsingEncKey(key)) {
+//         canRemove = false;
+//         break;
+//       }
+//     }
+//     if(canRemove) {
+//       // Remove from file old key and rotation in progress marker
+//
+//       Tuple2<String, String> currTuple = encryptionKeyMap.get(name);
+//       encryptionKeyMap.put(name, Tuple2.tuple2(null, currTuple.getT2()));
+//       encryptionInProgress.put(name, false);
+//     }
   }
 
   @Override

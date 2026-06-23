@@ -37,9 +37,7 @@ import org.terracotta.dynamic_config.api.model.nomad.SettingNomadChange;
 import org.terracotta.dynamic_config.api.model.nomad.StripeAdditionNomadChange;
 import org.terracotta.dynamic_config.api.model.nomad.StripeRemovalNomadChange;
 import org.terracotta.dynamic_config.api.model.nomad.UnlockConfigNomadChange;
-import org.terracotta.dynamic_config.api.service.DynamicConfigService;
-import org.terracotta.dynamic_config.api.service.NomadChangeInfo;
-import org.terracotta.dynamic_config.api.service.TopologyService;
+import org.terracotta.dynamic_config.api.service.*;
 import org.terracotta.json.Json;
 import org.terracotta.json.gson.GsonConfig;
 import org.terracotta.json.gson.GsonModule;
@@ -138,7 +136,9 @@ public class DynamicConfigJsonModule implements GsonModule {
         RollbackMessage.class,
         String.class,
         TakeoverMessage.class,
-        TopologyService.class
+        TopologyService.class,
+        DataDirHolder.class,
+        DataDirsEncryption.class
     );
   }
 

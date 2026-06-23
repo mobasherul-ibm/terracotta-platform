@@ -37,6 +37,7 @@ import org.terracotta.dynamic_config.api.server.LicenseService;
 import org.terracotta.dynamic_config.api.server.NomadPermissionChangeProcessor;
 import org.terracotta.dynamic_config.api.server.NomadRoutingChangeProcessor;
 import org.terracotta.dynamic_config.api.server.PathResolver;
+import org.terracotta.dynamic_config.server.configuration.nomad.persistence.NomadConfigurationManager;
 import org.terracotta.dynamic_config.server.configuration.service.ConfigChangeHandlerManagerImpl;
 import org.terracotta.dynamic_config.server.configuration.service.NomadServerManager;
 import org.terracotta.dynamic_config.server.configuration.service.ParameterSubstitutor;
@@ -147,6 +148,7 @@ public class DynamicConfigConfigurationProvider implements ConfigurationProvider
       DynamicConfigService dynamicConfigService = nomadServerManager.getDynamicConfigService();
       TopologyService topologyService = nomadServerManager.getTopologyService();
       DynamicConfigEventService eventService = nomadServerManager.getEventRegistrationService();
+      NomadConfigurationManager nomadConfigurationManager = nomadServerManager.getConfigurationManager();
 
       // initialize the passive sync service
       dynamicConfigurationPassiveSync = new DynamicConfigurationPassiveSync(

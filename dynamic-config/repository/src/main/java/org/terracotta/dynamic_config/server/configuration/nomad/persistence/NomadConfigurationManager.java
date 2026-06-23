@@ -44,6 +44,8 @@ public class NomadConfigurationManager {
   private final Path changesPath;
   private final IParameterSubstitutor parameterSubstitutor;
 
+  private Path encryptionPath;
+
   public NomadConfigurationManager(Path configurationDirectory, IParameterSubstitutor parameterSubstitutor) {
     this.parameterSubstitutor = parameterSubstitutor;
     requireNonNull(configurationDirectory);
@@ -69,6 +71,21 @@ public class NomadConfigurationManager {
     if (depth == NONE || depth == ROOT_ONLY) {
       createNomadSubDirectories();
     }
+  }
+
+  public void createEncryptionDirectory() {
+    if(encryptionPath == null) {
+      encryptionPath = clusterPath.resolve("encrypt");
+      try {
+        Files.createDirectories(encryptionPath);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
+  public Path getEncryptionPath() {
+    return encryptionPath;
   }
 
   public Path getConfigurationDirectory() {
